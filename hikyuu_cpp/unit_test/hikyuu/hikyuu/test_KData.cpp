@@ -685,6 +685,108 @@ TEST_CASE("test_getKData_by_index") {
                                279102.7000, 451981.0000));
 }
 
+static const string base_currencies[] = {"ADA", "AVAX", "BCH", "BNB", "BTC",  "DAI",
+                                      "DOGE", "DOT",  "ETH", "LEO", "LTC",  "MATIC",
+                                      "SHIB", "SOL",  "TON", "TRX", "WBTC", "XRP"};
+
+TEST_CASE("test_getKData_crypto_okx_day") {
+    StockManager& sm = StockManager::instance();
+    KData kdata;
+    KQuery query;
+    size_t total;
+    Stock pair;
+    const string quote = "USDT";
+    const string exchange = "OKX";
+    // default query by DAY
+    query = KQueryByDate();
+
+    for (const string& base : {"BTC"}) {
+        string symbol = fmt::format("{}/{}-{}", exchange, base, quote);
+        pair = sm.getStock(symbol);
+        total = pair.getCount();
+        HKU_INFO("{} DAY total {}", symbol, total);
+        kdata = pair.getKData(query);
+        CHECK_EQ(kdata.size(), total);
+        CHECK_GT(kdata.size(), 0);
+        if (kdata.size() > 0)
+            HKU_INFO("{}", kdata[0]);
+    }
+}
+
+TEST_CASE("test_getKData_crypto_okx_min") {
+    StockManager& sm = StockManager::instance();
+    KData kdata;
+    KQuery query;
+    size_t total;
+    Stock pair;
+    const string quote = "USDT";
+    const string exchange = "OKX";
+    query = KQueryByDate(Datetime::min(), Null<Datetime>(), KQuery::MIN);
+    for (const string& base : {"BTC"}) {
+        string symbol = fmt::format("{}/{}-{}", exchange, base, quote);
+        pair = sm.getStock(symbol);
+        total = pair.getCount(query.kType());
+        HKU_INFO("{} {} total {}", symbol, query.kType(), total);
+        kdata = pair.getKData(query);
+        CHECK_EQ(kdata.size(), total);
+        CHECK_GT(kdata.size(), 0);
+        if (kdata.size() > 0)
+            HKU_INFO("{}", kdata[0]);
+    }
+}
+
+TEST_CASE("test_getKData_crypto_okx_week") {
+    StockManager& sm = StockManager::instance();
+    KData kdata;
+    KQuery query;
+    Stock pair;
+    const string quote = "USDT";
+    const string exchange = "OKX";
+    int64_t num = 100;
+    query = KQueryByIndex(-num, Null<int64_t>(), KQuery::WEEK);
+    for (const string& base : {"BTC"}) {
+        string symbol = fmt::format("{}/{}-{}", exchange, base, quote);
+        pair = sm.getStock(symbol);
+        kdata = pair.getKData(query);
+        HKU_INFO("{} {} total {}", symbol, query.kType(), kdata.size());
+        CHECK_GT(kdata.size(), 0);
+        CHECK_EQ(kdata.size(), abs(num));
+        if (kdata.size() > 0)
+            HKU_INFO("{}", kdata[0]);
+            HKU_INFO("{}", kdata[1]);
+            HKU_INFO("{}", kdata[2]);
+            HKU_INFO("{}", kdata[kdata.size()-1]);
+
+        // compare with base kdata
+    }
+}
+
+TEST_CASE("test_getKData_crypto_okx_min30") {
+    StockManager& sm = StockManager::instance();
+    KData kdata;
+    KQuery query;
+    Stock pair;
+    const string quote = "USDT";
+    const string exchange = "OKX";
+    int64_t num = 1000;
+    query = KQueryByIndex(-num, Null<int64_t>(), KQuery::MIN30);
+    for (const string& base : {"BTC"}) {
+        string symbol = fmt::format("{}/{}-{}", exchange, base, quote);
+        pair = sm.getStock(symbol);
+        kdata = pair.getKData(query);
+        HKU_INFO("{} {} total {}", symbol, query.kType(), kdata.size());
+        CHECK_GT(kdata.size(), 0);
+        CHECK_EQ(kdata.size(), abs(num));
+        if (kdata.size() > 0)
+            HKU_INFO("{}", kdata[0]);
+            HKU_INFO("{}", kdata[1]);
+            HKU_INFO("{}", kdata[2]);
+            HKU_INFO("{}", kdata[kdata.size()-1]);
+
+        // compare with base kdata
+    }
+}
+
 /** @par 检测点 */
 TEST_CASE("test_getKData_by_date") {
     StockManager& sm = StockManager::instance();
