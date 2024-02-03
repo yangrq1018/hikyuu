@@ -9,6 +9,9 @@ target("core")
     --     --set_enable(false) --set_enable(false)会彻底禁用这个target，连target的meta也不会被加载，vcproj不会保留它
     -- end
 
+    -- check for symbols in dynamic library build
+    -- add_shflags("-Wl,-z,defs")
+
     add_options("stacktrace")
 
     add_deps("hikyuu")
@@ -34,7 +37,7 @@ target("core")
     add_includedirs("../hikyuu_cpp")
     add_files("./**.cpp")
 
-    add_rpathdirs("$ORIGIN", "$ORIGIN/lib", "$ORIGIN/../lib")
+    add_rpathdirs("$ORIGIN", "$ORIGIN/lib", "$ORIGIN/../lib", "$(buildir)/$(mode)/linux/x86_64/lib")
 
     on_load("windows", "linux", "macosx", function(target)
         import("lib.detect.find_tool")
@@ -98,8 +101,7 @@ target("core")
             os.cp(target:targetdir() .. '/core.so', dst_obj .. ".so")
             os.cp(target:targetdir() .. '/*.dylib', dst_obj)
         else
-            os.trycp(target:targetdir() .. '/*.so', dst_dir)
-            os.trycp(target:targetdir() .. '/*.so.*', dst_dir)
+            os.trycp(target:targetdir() .. '/core.so', dst_dir)
             if not is_plat("cross") then
                 os.trymv(target:targetdir() .. '/core.so', dst_obj .. ".so")
             end
